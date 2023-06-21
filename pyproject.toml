@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "openborders"
-version = "0.1.0"
+version = "0.1.1-post0"
 description = ""
 authors = ["arnos-stuff <mail@arnov.dev>"]
 readme = "README.md"
-homepage = "https://github.com/arnos-stuff/open-borders-index"
+homepage = "https://arnos-stuff.github.io/open-borders-index"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -30,6 +30,8 @@ mkdocs-material = "^9.1.16"
 mike = "^1.1.2"
 typer-cli = "^0.0.13"
 mkgendocs = "^0.9.2"
+pillow = "^9.5.0"
+cairosvg = "^2.7.0"
 
 [tool.poetry.scripts]
 opbd = "openborders.cli:app"

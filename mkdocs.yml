@@ -1,9 +1,12 @@
 site_name: Open Borders ToolBox
 repo_name: arnos-stuff/open-borders-index
+repo_url: https://github.com/arnos-stuff/open-borders-index
+site_url: https://arnos-stuff.github.io/open-borders-index
+site_author: Shae / Arno
 
 theme:
   name: material
-  custom_dir: data/
+  custom_dir: docs/assets/
   font:
     text: Fira Sans
     code: Fira Code
@@ -40,9 +43,11 @@ extra:
     link: https://hub.docker.com/u/arnovdev
   version:
     provider: mike
+    default: latest
 
 plugins:
 - search
+- social
 # - coverage:
 # page_name: coverage
 # html_report_dir: htmlcov
