@@ -6,6 +6,9 @@ __all__ = ["Pkg", "Root", "Data", "enumFromDict"]
 Pkg = Path(__file__).parent
 Root = Pkg.parent
 Data = Root / 'data'
+dbpath = Data / 'dims.json' 
+dbpath.parent.mkdir(parents=True, exist_ok=True)
+dbpath.touch(555)
 
 def enumFromDict(name, values):
     _k = _v = None

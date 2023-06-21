@@ -1,10 +1,15 @@
 [tool.poetry]
 name = "openborders"
-version = "0.1.1-post0"
+version = "0.1.1-post3"
 description = ""
 authors = ["arnos-stuff <mail@arnov.dev>"]
 readme = "README.md"
 homepage = "https://arnos-stuff.github.io/open-borders-index"
+
+include = [
+    "data/gdim.columns.json",
+    "data/isocodes.csv"
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
