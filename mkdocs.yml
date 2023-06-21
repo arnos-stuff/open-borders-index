@@ -1,0 +1,48 @@
+site_name: Open Borders ToolBox
+repo_name: arnos-stuff/open-borders-index
+
+theme:
+  name: material
+  custom_dir: data/
+  font:
+    text: Fira Sans
+    code: Fira Code
+  icon:
+    logo: logo/OBT-SIMPLE
+  favicon: logo/OBT-SIMPLE.ico
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: purple
+
+nav:
+- index.md
+- cli.md
+- gen/data.md
+- gen/indices.md
+
+markdown_extensions:
+- pymdownx.emoji:
+    emoji_index: !!python/name:materialx.emoji.twemoji
+    emoji_generator: !!python/name:materialx.emoji.to_svg
+    options:
+      custom_icons:
+      - data/.icons
+
+extra:
+  generator: true
+  social:
+  - icon: material/twitter
+    link: https://twitter.com/arno_shae
+  - icon: simple/github
+    link: https://github.com/arnos-stuff
+  - icon: material/docker
+    link: https://hub.docker.com/u/arnovdev
+  version:
+    provider: mike
+
+plugins:
+- search
+# - coverage:
+# page_name: coverage
+# html_report_dir: htmlcov

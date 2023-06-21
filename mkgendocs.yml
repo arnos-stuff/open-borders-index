@@ -1,0 +1,27 @@
+sources_dir: docs/gen/
+templates_dir: docs/tpl
+repo: https://github.com/arnos-stuff/open-borders-index
+version: master
+
+
+pages:
+- page: "data.md"
+  name: Data related utils
+  source: "openborders/data.py"
+  classes:
+  - SourcePrefix
+  - DataSource
+  - Dimensions
+  - Wages
+  - Immigration
+  - Business
+  - Education
+  - MobilityMetrics
+  - Labor
+- page: "indices.md"
+  name: Indices and processing
+  source: "openborders/indices.py"
+  classes:
+  - DataIndex
+  functions:
+  - isCacheComplete

@@ -16,10 +16,10 @@ app = typer.Typer(
     rich_markup_mode='rich'
 )
 
-@app.command(name="rm", help="Wipe existing cached information if it exists. Alias for `reset`.")
-@app.command(name="wipe", help="Wipe existing cached information if it exists. Alias for `reset`.")
-@app.command(name="empty", help="Wipe existing cached information if it exists. Alias for `reset`.")
-@app.command(name="reset", help="Wipe existing cached information if it exists. Alias for `reset`.")
+@app.command(name="rm", help="Wipe existing cached information if it exists. Alias for `reset`.", hidden=True)
+@app.command(name="wipe", help="Wipe existing cached information if it exists. Alias for `reset`.", hidden=True)
+@app.command(name="empty", help="Wipe existing cached information if it exists. Alias for `reset`.", hidden=True)
+@app.command(name="reset", help="Wipe existing cached information if it exists. Alias for `rm`,`wipe`,`empty`.")
 def reset_cache():
     di = DataIndex()
     di.wipe()
@@ -87,80 +87,37 @@ def show_cache(
 def preprocess(
     indicator: str = typer.Option(None, '-i', '--indicator', help="Filter the view on an indicator"),
     list_indicators: bool = typer.Option(False, '-li', '--list-indicators', help="List available indicators"),
-    ygt: int = typer.Option(1990, '-ygt', '--year-greater', help="Whether to filter on years greater than {value}"),
+    ygt: int = typer.Option(1980, '-ygt', '--year-greater', help="Whether to filter on years greater than {value}"),
     dropna: bool = typer.Option(False, '-dna', '--drop-na', help="Whether to drop NA values."),
     normalize: bool = typer.Option(False, '-n', '--norm', help="Whether to scale every metric to [0,1] using the per-country"),
     out: str = typer.Option(None, '-o', '--outfile', help="Output the result as a flat file. (Formats: .csv, .xlsx, .json)"),
     debug: bool = typer.Option(False, '-d', '--debug', help="Debug using log statements at each inner loop operation.")
     ):
     di = DataIndex()
-    df = di.to_df()
-    if ygt:
-        df.year = pd.to_datetime(df.year)
-        ygt = pd.to_datetime(f"01-01-{ygt}", dayfirst=True)
-        v = df[df.year >= ygt].copy()
-    if list_indicators:
-        v = df.indicator.unique()
-        v = ' (+) ' + '\n (+) '.join(v)
-    elif indicator:
-        v = df[df.indicator == indicator]
-    else:
-        v = df        
 
-    if normalize:
-        spinner.start()
-        years = pd.date_range(v.year.min(), v.year.max(), freq='5Y')
-        nints = len(years) - 1
-        intervals = zip(years, years[1:])
-        indicators = v.indicator.unique()
-        normalizing = spinner.add_task("[bold red]Normalizing data 📊[/bold red]", total=len(indicators)*nints)
-        newcols = ['min', 'max', 'mean', 'std', 'norm_value', 'minmax_value']
+    metrics = di.preprocess(
+        debug=debug,
+        dropna=dropna,
+        normalize=normalize,
+        year_gt=ygt,
+        list_indicators=list_indicators,
+        indicator=indicator
+    )
         
-        for nc in newcols:
-            v[nc] = pd.NA
-        for start, stop in spinner.track(intervals, nints, description="[bold magenta]Normalizing per period..[/bold magenta]"):
-            intv = spinner.add_task(f"[yellow] Interval: {start:%d.%m.%Y} <= dt <= {stop:%d.%m.%Y} [/yellow]", total=len(indicators))
-            for ind in indicators:
-                indt = spinner.add_task(f"Indicator: {ind}", total=None)
-                colfilter = (v.year <= stop) & (v.year >= start) & (v.indicator == ind)
-                indval = v.loc[colfilter, 'indicator_value']
-                indval = indval.apply(lambda v: np.nan if v == '' else float(v)).dropna()
-
-                vmax, vmin, mean, std = indval.max(), indval.min(), indval.mean(), indval.std()
-                rg = vmax - vmin
-                minmax = (indval - vmin) / (rg+1e-09)
-                zscore = (indval - mean) / (std+1e-09)
-                newvals = [vmin, vmax, mean, std, zscore, minmax]
-                
-                if debug:
-                    console.log(f"Interval: {start} <= dt <= {stop} | Values: {vmin} <= v <= {vmax} | Z-score: v ≈ μ ± σ ≈ {mean:.2f} ± {std:.2f}")
-                
-                for nc, nv in zip(newcols, newvals):
-                    v.loc[colfilter, nc] = nv
-                spinner.update(normalizing, advance=1)
-                spinner.update(intv, advance=1)
-                spinner.refresh()
-                spinner.remove_task(indt)
-            spinner.remove_task(intv)
-        spinner.remove_task(normalizing)
-        
-    if dropna:
-        v = v.dropna()
-        
-    console.print(v)
+    console.print(metrics)
     console.print("\n[dim]Use [red]`show -i {indicator}`[/red] to filter on one of these values[/dim]")
     if out is not None:
         out = Path(out)
         match out.suffix:
             case '.csv':
-                df.to_csv(out, index=False)
+                metrics.to_csv(out, index=False)
             case '.xlsx':
-                df.to_excel(out, engine="openpyxl", index=False)
+                metrics.to_excel(out, engine="openpyxl", index=False)
             case '.json':
-                df.to_json(out, orient='records')
+                metrics.to_json(out, orient='records')
             case _:
                 if str(out) == '':
                     out = Path('result.csv')
                 else:
                     out = Path(out).with_suffix('.csv')
-                df.to_csv(out, index=False)
+                metrics.to_csv(out, index=False)
