@@ -18,7 +18,7 @@ opbd preprocess -n -o open-borders-index.csv
 
 ## Example result
 
-A sample CSV file can be found [here](https://github.com/arnos-stuff/open-border-index/tests/open-borders-index.csv)
+A sample CSV file can be found [here](https://github.com/arnos-stuff/open-border-index/open-borders-index.csv)
 
 ## Credits
 
