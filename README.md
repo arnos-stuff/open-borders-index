@@ -20,6 +20,10 @@ opbd preprocess -n -o open-borders-index.csv
 
 A sample CSV file can be found [here](tests/open-borders-index.csv)
 
+## Vote for your metrics, propose yours !
+
+See the poll [available on the strawpoll website](https://strawpoll.com/polls/X3nk4ReRzgE)
+
 ## Credits
 
 This toolbox heavily relies on the work from the folks at [wbdata](https://github.com/OliverSherouse/wbdata) and overall APIs of
