@@ -7,7 +7,7 @@ from tinydb import TinyDB, where, Query
 from enum import Enum
 from operator import and_, or_
 from functools import reduce
-from typing import Self, Any, Generator, Union, Literal
+from typing import Self, Any, Generator, Union, Literal, Dict
 from itertools import chain
 from urllib.parse import urljoin
 from rich.progress import (
@@ -25,6 +25,18 @@ from openborders.data import DataSource, Dimensions, DIMS_DB, GDIM_URL
 
 console = Console()
 log = console.log
+
+DEFAULT_COEFFICIENTS = {
+ 'PERCENT_UNEMPLOYMENT' : -1.0,
+ 'PERCENT_VULNERABLE_EMPLOYMENT' : -1.0,
+ 'GROWTH_RATE_CONSUM_INCOME_PER_CAPITA' : 1.0,
+ 'INCOME_SHARE_LOWEST_TWENTY_PCT' : 1.0,
+ 'POVERTY_RATIO_NATL_LINE' : -1.0,
+ 'CHILDREN_UNSCHOOLED' : -1.0,
+ 'PERCENT_POPULATION' : 0.0,
+ 'PERCENT_SLUMS' : -1.0,
+ 'PERCENT_YOUNG' : 1.0,
+}
 
 spinner = Progress(
     SpinnerColumn(),
@@ -203,7 +215,6 @@ class DataIndex:
             v = cls.df[cls.df.year >= year_gt].copy()
         if list_indicators:
             v = cls.df.indicator.unique()
-            v = ' (+) ' + '\n (+) '.join(v)
         elif indicator:
             v = cls.df[cls.df.indicator == indicator]
         else:
@@ -248,6 +259,51 @@ class DataIndex:
             
         if dropna:
             v = v.dropna()
-            
+        
+        if list_indicators:
+            return ' (+) ' + '\n (+) '.join(v)
         return v
-    
+
+    @classmethod
+    def rank(
+        cls, 
+        df:pd.DataFrame,
+        coeffs: Dict[str, float] = None,
+        keep_years: bool = True,
+        detailed: bool = False
+        ) -> pd.DataFrame:
+        coeffs = coeffs or DEFAULT_COEFFICIENTS
+        cols = ["country", "year", "norm_value", "minmax_value"]
+        numerics = ['indicator_value', 'minmax_value', 'norm_value']
+        values = df.indicator.unique()
+        keys = ['country', 'year']
+        rows = df[keys].drop_duplicates()
+        task = spinner.add_task(f"Processing metrics", total=len(coeffs)*len(numerics))
+        for coeff, multiplier in coeffs.items():
+            coeff_task = spinner.add_task(f"Processing metric: {coeff}", total=len(numerics))
+            if coeff in values:
+                name = f"{coeff.lower()}_"
+                for n in numerics:
+                    spinner.advance(task)
+                    spinner.advance(coeff_task)
+                    med = df.loc[df.indicator == coeff, n].median()
+                    df.loc[df.indicator == coeff, name+n] = df.loc[df.indicator == coeff].fillna(med)
+                    df.loc[df.indicator == coeff, name+n] = multiplier * df.loc[df.indicator == coeff, n]
+                    rows = pd.merge(rows, df[[*keys, name+n]],  how='left', on=keys)
+        dfr = rows.copy()
+        # if not detailed:
+        #     dfr = dfr[cols]
+        # else:
+        #     dfr = dfr.drop(columns=["code", "indicator_id", "indicator", "indicator_description"])
+        if not keep_years:
+            dfr = dfr.groupby(['country', 'year']).median().reset_index()
+        else:
+            dfr = dfr.groupby(['country']).median().reset_index().drop(columns=['year'])
+
+        # dfr = dfr.rename(columns={'minmax_value': 'minmax_mean', 'norm_value': 'norm_mean'})
+        # console.log(f"{dfr.shape}, {df.shape}")
+        # merge_on = ["country", "year"] if keep_years and 'year' in dfr.columns else ["country"]
+
+        # dfr = pd.merge(dfr, df, on=merge_on, how='left')
+
+        return dfr

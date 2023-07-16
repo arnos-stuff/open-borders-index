@@ -24,6 +24,8 @@ ipywidgets = {version = "^8.0.6", optional = true}
 shinywidgets = {version = "^0.2.1", optional = true}
 shinyswatch = {version = "^0.2.4", optional = true}
 mkdocs-coverage = "^0.2.7"
+dash = "^2.11.1"
+dash-ag-grid = "^2.2.0"
 
 [tool.poetry.extras]
 draw = ['plotly', 'shiny', 'ipywidgets', 'shinywidgets', 'shinyswatch']
